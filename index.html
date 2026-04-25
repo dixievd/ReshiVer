@@ -3,19 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeshVault | R6 Directory</title>
+    <title>ReshiVer | R6 Directory</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
+            /* DARK THEME (Default) */
             --bg: #0f0f0f;
             --card-bg: #1a1a1a;
+            --header-bg: rgba(15, 15, 15, 0.8);
             --accent: #00f2ff;
             --accent-glow: rgba(0, 242, 255, 0.3);
             --text: #e0e0e0;
-            --text-dim: #888;
+            --text-dim: #ff9800; /* Additional texts changed to Orange */
             --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.1);
             --danger: #ff4444;
+            --viewer-bg: #222;
+            --input-bg: #000;
+        }
+
+        [data-theme="light"] {
+            /* LIGHT THEME */
+            --bg: #f4f4f5;
+            --card-bg: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.8);
+            --accent: #0088ff;
+            --accent-glow: rgba(0, 136, 255, 0.3);
+            --text: #111827;
+            --text-dim: #e65100; /* Darker orange for light background contrast */
+            --glass: rgba(0, 0, 0, 0.05);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --viewer-bg: #e5e5e5;
+            --input-bg: #f9f9f9;
         }
 
         body {
@@ -24,9 +43,9 @@
             background-color: var(--bg);
             color: var(--text);
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Prevent scrolling when Age Gate is active */
         body.locked { overflow: hidden; }
 
         header {
@@ -39,14 +58,15 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(15, 15, 15, 0.8);
+            background: var(--header-bg);
+            transition: background-color 0.3s ease;
         }
 
         .logo {
             font-size: 1.2rem;
             font-weight: 800;
             letter-spacing: 2px;
-            background: linear-gradient(to right, #fff, var(--accent));
+            background: linear-gradient(to right, var(--text), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -58,7 +78,7 @@
             border-radius: 8px;
             border: 1px solid var(--glass-border);
             background: var(--glass);
-            color: white;
+            color: var(--text);
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -66,14 +86,17 @@
 
         .btn-primary {
             background: var(--accent);
-            color: #000;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
             border: none;
             box-shadow: 0 0 15px var(--accent-glow);
         }
 
         .btn:hover { transform: translateY(-2px); border-color: var(--accent); }
         .btn-text { background: transparent; border: none; color: var(--text-dim); }
-        .btn-text:hover { color: white; transform: none; border: none; }
+        .btn-text:hover { color: var(--accent); transform: none; border: none; }
+        
+        .theme-toggle { padding: 10px; border-radius: 50%; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; }
 
         #gallery {
             display: grid;
@@ -88,13 +111,15 @@
             overflow: hidden;
             border: 1px solid var(--glass-border);
             animation: fadeIn 0.5s ease forwards;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .viewer-container {
             width: 100%;
             height: 320px;
-            background: #222;
+            background: var(--viewer-bg);
             position: relative;
+            transition: background-color 0.3s ease;
         }
 
         .card-meta {
@@ -119,24 +144,26 @@
         }
 
         .modal {
-            background: #151515;
+            background: var(--card-bg);
             width: 450px;
             padding: 40px;
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             text-align: center;
+            transition: background-color 0.3s ease;
         }
 
         .modal input {
             width: 100%;
             padding: 15px;
-            background: #000;
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
-            color: white;
+            color: var(--text);
             font-size: 1rem;
             margin: 10px 0;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; display: none; }
@@ -150,15 +177,16 @@
 <div id="age-gate" class="modal-overlay" style="display: flex; z-index: 9999;">
     <div class="modal">
         <h2>Age Verification</h2>
-        <p style="color: var(--text-dim); margin-bottom: 20px;">You must be 13 years of age or older to access MeshVault.</p>
-        <button class="btn btn-primary" style="width: 100%;" onclick="verifyAge()">I am 13 or older</button>
+        <p style="color: var(--text-dim); margin-bottom: 20px;">You must be 18 years of age or older to access ReshiVer.</p>
+        <button class="btn btn-primary" style="width: 100%;" onclick="verifyAge()">I am 18 or older</button>
         <button class="btn btn-text" style="width: 100%; margin-top: 10px;" onclick="window.location.href='https://google.com'">Leave Site</button>
     </div>
 </div>
 
 <header>
-    <div class="logo">MESHVAULT</div>
+    <div class="logo">RESHIVER</div>
     <div class="btn-group">
+        <button class="btn theme-toggle" onclick="toggleTheme()" id="theme-btn">☀️</button>
         <span id="auth-user-display" style="display: none;"></span>
         <button class="btn" id="btn-login" onclick="openAuthModal()">Login / Register</button>
         <button class="btn" id="btn-logout" style="display: none;" onclick="handleLogout()">Logout</button>
@@ -218,6 +246,19 @@
     let isRegisterMode = false;
     const viewers = [];
 
+    // --- THEME SYSTEM ---
+    window.toggleTheme = () => {
+        const isLight = document.body.getAttribute('data-theme') === 'light';
+        document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+        document.getElementById('theme-btn').innerText = isLight ? '☀️' : '🌙';
+        localStorage.setItem('theme', isLight ? 'dark' : 'light');
+    };
+
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+        document.getElementById('theme-btn').innerText = '🌙';
+    }
+
     // --- AGE GATE SYSTEM ---
     window.verifyAge = () => {
         localStorage.setItem('ageVerified', 'true');
@@ -231,13 +272,11 @@
     }
 
     // --- AUTH SYSTEM ---
-    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
         currentUser = session?.user || null;
         updateUI();
     });
 
-    // Listen for login/logout events
     supabase.auth.onAuthStateChange((_event, session) => {
         currentUser = session?.user || null;
         updateUI();
@@ -252,7 +291,6 @@
             loginBtn.style.display = 'none';
             logoutBtn.style.display = 'block';
             userDisplay.style.display = 'block';
-            // Extract text before @ in email for display name
             userDisplay.innerText = currentUser.email.split('@')[0]; 
         } else {
             loginBtn.style.display = 'block';
@@ -261,7 +299,6 @@
         }
     }
 
-    // Auth Middleware: Wraps functions to require login
     window.requireAuth = (actionCallback) => {
         if (currentUser) {
             actionCallback();
@@ -340,16 +377,16 @@
     // --- FETCH & PUBLISH ---
     async function fetchGallery() {
         const gallery = document.getElementById('gallery');
-        gallery.innerHTML = "<p style='text-align:center; width:100%; grid-column:1/-1; color:#888;'>Loading global models...</p>";
+        gallery.innerHTML = "<p style='text-align:center; width:100%; grid-column:1/-1; color:var(--text-dim);'>Loading global models...</p>";
         
         const { data, error } = await supabase.from('posts').select('*').order('id', { ascending: false });
         if (error) {
-            gallery.innerHTML = "<p style='color:red;'>Failed to load models. Check Supabase DB Policies.</p>";
+            gallery.innerHTML = "<p style='color:var(--danger);'>Failed to load models. Check Supabase DB Policies.</p>";
             return;
         }
         
         gallery.innerHTML = "";
-        if (data.length === 0) gallery.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Vault is empty. Be the first to post!</p>";
+        if (data.length === 0) gallery.innerHTML = "<p style='text-align:center; grid-column:1/-1; color:var(--text);'>Vault is empty. Be the first to post!</p>";
         
         for (const item of data) createCardFromCloud(item);
     }
@@ -406,7 +443,7 @@
         card.className = 'model-card';
         const viewerDiv = document.createElement('div');
         viewerDiv.className = 'viewer-container';
-        viewerDiv.innerHTML = '<div style="color:#555; display:flex; justify-content:center; align-items:center; height:100%;">Loading 3D...</div>';
+        viewerDiv.innerHTML = '<div style="color:var(--text-dim); display:flex; justify-content:center; align-items:center; height:100%;">Loading 3D...</div>';
         
         const meta = document.createElement('div');
         meta.className = 'card-meta';
@@ -416,7 +453,6 @@
         dlBtn.className = 'btn';
         dlBtn.innerText = 'Download .zip';
         
-        // --- RESTRICT DOWNLOADS HERE ---
         dlBtn.onclick = () => {
             requireAuth(() => {
                 const a = document.createElement('a');
@@ -456,7 +492,7 @@
                 initThree(viewerDiv, geo, false);
             }
         } catch (e) {
-            viewerDiv.innerHTML = '<div style="color:red; display:flex; justify-content:center; align-items:center; height:100%;">Preview Unavailable</div>';
+            viewerDiv.innerHTML = '<div style="color:var(--danger); display:flex; justify-content:center; align-items:center; height:100%;">Preview Unavailable</div>';
         }
     }
 
