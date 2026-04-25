@@ -11,8 +11,7 @@
             --bg: #0f0f0f;
             --card-bg: #1a1a1a;
             --header-bg: rgba(15, 15, 15, 0.7);
-            --accent: #00f2ff;
-            --brand-orange: #ff9800; /* New Orange variable */
+            --brand-orange: #ff9800; 
             --brand-orange-deep: #e65100;
             --accent-glow: rgba(255, 152, 0, 0.3);
             --text: #e0e0e0;
@@ -20,9 +19,9 @@
             --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.1);
             --danger: #ff4444;
-            --viewer-bg: #222;
+            --viewer-bg: #151515;
             --input-bg: #000;
-            --snow-color: rgba(255, 255, 255, 0.4);
+            --snow-color: rgba(255, 255, 255, 0.5);
         }
 
         [data-theme="light"] {
@@ -34,9 +33,9 @@
             --text-dim: #e65100;
             --glass: rgba(0, 0, 0, 0.05);
             --glass-border: rgba(0, 0, 0, 0.1);
-            --viewer-bg: #e5e5e5;
+            --viewer-bg: #e0e0e0;
             --input-bg: #f9f9f9;
-            --snow-color: rgba(0, 0, 0, 0.2);
+            --snow-color: rgba(0, 0, 0, 0.7); /* FIXED: Black Snow */
         }
 
         body {
@@ -45,10 +44,9 @@
             background-color: var(--bg);
             color: var(--text);
             overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.3s ease;
         }
 
-        /* Snow Canvas Styling */
         #snow-canvas {
             position: fixed;
             top: 0;
@@ -78,11 +76,10 @@
             font-size: 1.4rem;
             font-weight: 900;
             letter-spacing: 3px;
-            /* Logo now Orange */
             background: linear-gradient(to right, var(--brand-orange), var(--brand-orange-deep));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px var(--accent-glow));
+            filter: drop-shadow(0 0 8px var(--accent-glow));
         }
 
         .btn-group { display: flex; gap: 15px; align-items: center; }
@@ -95,7 +92,7 @@
             color: var(--text);
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .btn-primary {
@@ -143,15 +140,13 @@
         }
 
         .meta-info h3 { margin: 0; font-size: 1.1rem; }
-        .meta-info p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-dim); }
+        .meta-info p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-dim); font-weight: bold; }
 
-        /* Nickname Color */
         #auth-user-display { 
             color: var(--brand-orange); 
             font-weight: 800; 
             font-size: 0.9rem; 
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .modal-overlay {
@@ -195,7 +190,7 @@
 <div id="age-gate" class="modal-overlay" style="display: flex; z-index: 9999;">
     <div class="modal">
         <h2 style="color: var(--brand-orange)">Age Verification</h2>
-        <p style="color: var(--text); margin-bottom: 20px;">You must be 18 years of age or older to access ReshiVer.</p>
+        <p>You must be 18 years of age or older to access ReshiVer.</p>
         <button class="btn btn-primary" style="width: 100%;" onclick="verifyAge()">I am 18 or older</button>
         <button class="btn btn-text" style="width: 100%; margin-top: 10px;" onclick="window.location.href='https://google.com'">Leave Site</button>
     </div>
@@ -219,7 +214,6 @@
     <div class="modal">
         <h2 id="modal-title">Publish Model</h2>
         <input type="text" id="model-name-input" placeholder="Model Name">
-        <input type="text" id="creator-name-input" placeholder="Creator Name">
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn" style="flex: 1" onclick="closeModal('modal-overlay')">Cancel</button>
             <button class="btn btn-primary" style="flex: 1" onclick="finalizePublish()">Publish Now</button>
@@ -232,10 +226,9 @@
         <h2 id="auth-title" style="color: var(--brand-orange)">Welcome Back</h2>
         <input type="email" id="auth-email" placeholder="Email Address">
         <input type="password" id="auth-password" placeholder="Password">
-        <p id="auth-error" style="color:red; font-size:0.8rem; display:none;"></p>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-primary" id="auth-action-btn" onclick="handleAuth()">Login</button>
-            <button class="btn btn-text" id="auth-toggle-btn" onclick="toggleAuthMode()">Need an account? Register</button>
+            <button class="btn btn-primary" onclick="handleAuth()">Submit</button>
+            <button class="btn btn-text" onclick="toggleAuthMode()">Toggle Login/Register</button>
             <button class="btn" onclick="closeModal('auth-modal')">Cancel</button>
         </div>
     </div>
@@ -263,258 +256,183 @@
     let currentMode = 'single';
     const viewers = [];
 
-    // --- SNOW PARALLAX ENGINE ---
+    // --- SNOW ENGINE ---
     const canvas = document.getElementById('snow-canvas');
     const ctx = canvas.getContext('2d');
     let flakes = [];
-    let mouseX = 0, mouseY = 0;
-
     function initSnow() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         flakes = [];
-        for (let i = 0; i < 150; i++) {
-            flakes.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                r: Math.random() * 4 + 1, // Radius
-                d: Math.random() * 1,     // Density/Speed
-                b: Math.random() * 5 + 2, // Blur factor
-                o: Math.random() * 0.5 + 0.1 // Opacity
-            });
-        }
+        for (let i = 0; i < 150; i++) flakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 3 + 1, d: Math.random() * 1 });
     }
-
     function drawSnow() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const snowColor = getComputedStyle(document.documentElement).getPropertyValue('--snow-color');
-        ctx.fillStyle = snowColor;
-
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--snow-color');
         flakes.forEach(f => {
-            ctx.beginPath();
-            // Parallax movement based on mouse + vertical drift
-            const moveX = (mouseX - canvas.width/2) * (f.r / 100);
-            const moveY = (mouseY - canvas.height/2) * (f.r / 100);
-            
-            ctx.arc(f.x + moveX, f.y + moveY, f.r, 0, Math.PI * 2, true);
-            ctx.fill();
-
-            // Update position
-            f.y += Math.pow(f.d, 2) + 1;
-            f.x += Math.sin(f.y / 50);
-
-            if (f.y > canvas.height) {
-                f.y = -10;
-                f.x = Math.random() * canvas.width;
-            }
+            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+            f.y += f.d + 1; f.x += Math.sin(f.y/50);
+            if (f.y > canvas.height) { f.y = -10; f.x = Math.random() * canvas.width; }
         });
         requestAnimationFrame(drawSnow);
     }
-
-    window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+    initSnow(); drawSnow();
     window.addEventListener('resize', initSnow);
-    initSnow();
-    drawSnow();
 
-    // --- THEME SYSTEM ---
+    // --- THEME ---
     window.toggleTheme = () => {
         const isLight = document.body.getAttribute('data-theme') === 'light';
         document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
         document.getElementById('theme-btn').innerText = isLight ? '☀️' : '🌙';
-        localStorage.setItem('theme', isLight ? 'dark' : 'light');
     };
 
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.setAttribute('data-theme', 'light');
-        document.getElementById('theme-btn').innerText = '🌙';
-    }
-
-    // --- AGE GATE ---
-    window.verifyAge = () => {
-        localStorage.setItem('ageVerified', 'true');
-        document.getElementById('age-gate').style.display = 'none';
-        document.body.classList.remove('locked');
-    };
-    if (localStorage.getItem('ageVerified') === 'true') {
-        document.getElementById('age-gate').style.display = 'none';
-        document.body.classList.remove('locked');
-    }
-
-    // --- AUTH SYSTEM ---
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        currentUser = session?.user || null;
-        updateUI();
-    });
-
+    // --- AUTH ---
     supabase.auth.onAuthStateChange((_event, session) => {
         currentUser = session?.user || null;
-        updateUI();
+        const disp = document.getElementById('auth-user-display');
+        const login = document.getElementById('btn-login');
+        const logout = document.getElementById('btn-logout');
+        if (currentUser) {
+            disp.style.display = 'block'; disp.innerText = currentUser.email.split('@')[0];
+            login.style.display = 'none'; logout.style.display = 'block';
+        } else {
+            disp.style.display = 'none'; login.style.display = 'block'; logout.style.display = 'none';
+        }
     });
 
-    function updateUI() {
-        const loginBtn = document.getElementById('btn-login');
-        const logoutBtn = document.getElementById('btn-logout');
-        const userDisplay = document.getElementById('auth-user-display');
-        if (currentUser) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            userDisplay.style.display = 'block';
-            userDisplay.innerText = currentUser.email.split('@')[0]; 
-        } else {
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            userDisplay.style.display = 'none';
-        }
-    }
+    window.verifyAge = () => { localStorage.setItem('ageVerified', 'true'); document.getElementById('age-gate').style.display='none'; document.body.classList.remove('locked'); };
+    if(localStorage.getItem('ageVerified')) { document.getElementById('age-gate').style.display='none'; document.body.classList.remove('locked'); }
 
-    window.requireAuth = (cb) => currentUser ? cb() : openAuthModal();
     window.openAuthModal = () => document.getElementById('auth-modal').style.display = 'flex';
     window.closeModal = (id) => document.getElementById(id).style.display = 'none';
-
-    window.toggleAuthMode = () => {
-        isRegisterMode = !isRegisterMode;
-        document.getElementById('auth-title').innerText = isRegisterMode ? "Create Account" : "Welcome Back";
-        document.getElementById('auth-action-btn').innerText = isRegisterMode ? "Register" : "Login";
-        document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? "Login instead" : "Need an account? Register";
-    };
-
+    window.toggleAuthMode = () => isRegisterMode = !isRegisterMode;
     window.handleAuth = async () => {
         const email = document.getElementById('auth-email').value;
         const password = document.getElementById('auth-password').value;
-        let res = isRegisterMode ? await supabase.auth.signUp({email, password}) : await supabase.auth.signInWithPassword({email, password});
-        if (res.error) alert(res.error.message);
-        else closeModal('auth-modal');
+        if(isRegisterMode) await supabase.auth.signUp({email, password});
+        else await supabase.auth.signInWithPassword({email, password});
+        closeModal('auth-modal');
     };
-
     window.handleLogout = () => supabase.auth.signOut();
+    window.requireAuth = (cb) => currentUser ? cb() : openAuthModal();
 
-    // --- GALLERY & UPLOAD ---
-    async function fetchGallery() {
-        const { data } = await supabase.from('posts').select('*').order('id', { ascending: false });
-        const g = document.getElementById('gallery');
-        g.innerHTML = "";
-        data?.forEach(item => createCardFromCloud(item));
-    }
-    fetchGallery();
-
-    window.openUploader = (mode) => {
-        currentMode = mode;
-        const input = document.getElementById(mode === 'single' ? 'file-input-single' : 'file-input-r6');
-        input.click();
-    };
-
-    document.querySelectorAll('input[type="file"]').forEach(input => {
-        input.onchange = e => {
-            pendingFiles = Array.from(e.target.files);
-            if(pendingFiles.length) document.getElementById('modal-overlay').style.display = 'flex';
-        };
-    });
-
-    window.finalizePublish = async () => {
-        const name = document.getElementById('model-name-input').value || "Unnamed";
-        const titleEl = document.getElementById('modal-title');
-        titleEl.innerText = "Processing... ⏳";
-
-        try {
-            const zip = new JSZip();
-            if (currentMode === 'single') zip.file(pendingFiles[0].name, await pendingFiles[0].arrayBuffer());
-            else {
-                for (const f of pendingFiles) zip.file(f.name, await f.arrayBuffer());
-            }
-            const blob = await zip.generateAsync({ type: "blob" });
-            const fName = `${Date.now()}_model.zip`;
-            
-            await supabase.storage.from('meshes').upload(fName, blob);
-            const { data: urlData } = supabase.storage.from('meshes').getPublicUrl(fName);
-            
-            await supabase.from('posts').insert([{
-                name, creator: currentUser.email.split('@')[0], zip_url: urlData.publicUrl, is_r6: currentMode === 'r6'
-            }]);
-
-            closeModal('modal-overlay');
-            fetchGallery();
-        } catch (e) { alert(e.message); }
-    };
-
-    async function createCardFromCloud(item) {
-        const card = document.createElement('div');
-        card.className = 'model-card';
-        const vDiv = document.createElement('div');
-        vDiv.className = 'viewer-container';
-        
-        const meta = document.createElement('div');
-        meta.className = 'card-meta';
-        meta.innerHTML = `<div class="meta-info"><h3>${item.name}</h3><p>by ${item.creator}</p></div>`;
-        
-        const dl = document.createElement('button');
-        dl.className = 'btn'; dl.innerText = 'Download';
-        dl.onclick = () => requireAuth(() => { window.open(item.zip_url); });
-        
-        meta.appendChild(dl); card.append(vDiv, meta);
-        document.getElementById('gallery').appendChild(card);
-
-        try {
-            const res = await fetch(item.zip_url);
-            const zip = await JSZip.loadAsync(await res.blob());
-            if (item.is_r6) {
-                const parts = {};
-                for (const fn of Object.keys(zip.files)) {
-                    const geo = parseRoblox(await zip.files[fn].async("arraybuffer"));
-                    const n = fn.toLowerCase();
-                    if (n.includes('torso')) parts.torso = { geo };
-                    else if (n.includes('leftarm')) parts.leftarm = { geo };
-                    else if (n.includes('rightarm')) parts.rightarm = { geo };
-                    else if (n.includes('leftleg')) parts.leftleg = { geo };
-                    else if (n.includes('rightleg')) parts.rightleg = { geo };
-                }
-                initThree(vDiv, parts, true);
-            } else {
-                const geo = parseRoblox(await zip.files[Object.keys(zip.files)[0]].async("arraybuffer"));
-                initThree(vDiv, geo, false);
-            }
-        } catch (e) { vDiv.innerHTML = "Preview Error"; }
-    }
-
-    function parseRoblox(buf) {
-        const dv = new DataView(buf); const u8 = new Uint8Array(buf);
-        let h = 0; for(let i=0; i<u8.length; i++) { if(u8[i] === 10) { h = i+1; break; } }
-        const vS = dv.getUint8(h+2), vC = dv.getUint32(h+4,true), fC = dv.getUint32(h+8,true);
-        const vO = h+12, iO = vO + (vC * vS);
-        const pos = []; for(let i=0; i<vC; i++){ const b = vO+(i*vS); pos.push(dv.getFloat32(b,true), dv.getFloat32(b+4,true), dv.getFloat32(b+8,true)); }
-        const idx = []; for(let i=0; i<fC*3; i++) idx.push(dv.getUint32(iO+(i*4), true));
-        const g = new THREE.BufferGeometry();
-        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-        g.setIndex(idx); g.computeVertexNormals();
-        return g;
-    }
-
+    // --- THREE.JS LIGHTING FIX ---
     function initThree(container, data, isR6) {
         const scene = new THREE.Scene();
         const cam = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 1000);
         const ren = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         ren.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(ren.domElement);
+
         const con = new OrbitControls(cam, ren.domElement);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const mat = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+        con.enableDamping = true;
+
+        // 1. Hemisphere Light (Ambient Sky/Ground light)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+        scene.add(hemiLight);
+
+        // 2. Fixed Directional Light (Key Light for depth)
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // 3. Headlight (Follows the camera)
+        const headLight = new THREE.PointLight(0xffffff, 1.0);
+        scene.add(headLight);
+
+        const mat = new THREE.MeshStandardMaterial({ 
+            color: 0x888888, 
+            roughness: 0.4, 
+            metalness: 0.2 
+        });
+
         if(isR6) {
             const g = new THREE.Group();
             const off = { torso:[0,0,0], leftarm:[-1.5,0,0], rightarm:[1.5,0,0], leftleg:[-0.5,-2,0], rightleg:[0.5,-2,0] };
             Object.entries(data).forEach(([k,v]) => {
                 const m = new THREE.Mesh(v.geo, mat); m.position.set(...off[k]); g.add(m);
             });
-            scene.add(g); cam.position.set(0,0,10);
+            scene.add(g); cam.position.set(0,2,12);
         } else {
-            const m = new THREE.Mesh(data, mat); scene.add(m); cam.position.set(0,0,5);
+            const m = new THREE.Mesh(data, mat); scene.add(m); cam.position.set(0,0,6);
         }
-        viewers.push({ scene, cam, ren, con });
+
+        viewers.push({ scene, cam, ren, con, headLight });
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        viewers.forEach(v => { v.con.update(); v.ren.render(v.scene, v.cam); });
+        viewers.forEach(v => { 
+            v.con.update(); 
+            // FIXED: Headlight now tracks the camera position
+            v.headLight.position.copy(v.cam.position);
+            v.ren.render(v.scene, v.cam); 
+        });
     }
     animate();
+
+    // --- UPLOAD LOGIC ---
+    window.openUploader = (mode) => { currentMode = mode; document.getElementById(mode === 'single' ? 'file-input-single' : 'file-input-r6').click(); };
+    document.querySelectorAll('input[type="file"]').forEach(i => i.onchange = e => { pendingFiles = Array.from(e.target.files); if(pendingFiles.length) document.getElementById('modal-overlay').style.display='flex'; });
+
+    window.finalizePublish = async () => {
+        const name = document.getElementById('model-name-input').value || "Unnamed";
+        const zip = new JSZip();
+        for(const f of pendingFiles) zip.file(f.name, await f.arrayBuffer());
+        const blob = await zip.generateAsync({type:"blob"});
+        const fName = `${Date.now()}_model.zip`;
+        await supabase.storage.from('meshes').upload(fName, blob);
+        const { data: url } = supabase.storage.from('meshes').getPublicUrl(fName);
+        await supabase.from('posts').insert([{ name, creator: currentUser.email.split('@')[0], zip_url: url.publicUrl, is_r6: currentMode==='r6' }]);
+        closeModal('modal-overlay'); fetchGallery();
+    };
+
+    async function fetchGallery() {
+        const { data } = await supabase.from('posts').select('*').order('id', {ascending:false});
+        const g = document.getElementById('gallery'); g.innerHTML = "";
+        data?.forEach(item => createCard(item));
+    }
+
+    async function createCard(item) {
+        const card = document.createElement('div'); card.className = 'model-card';
+        const vDiv = document.createElement('div'); vDiv.className = 'viewer-container';
+        const meta = document.createElement('div'); meta.className = 'card-meta';
+        meta.innerHTML = `<div class="meta-info"><h3>${item.name}</h3><p>by ${item.creator}</p></div>`;
+        const dl = document.createElement('button'); dl.className = 'btn'; dl.innerText = 'Download';
+        dl.onclick = () => requireAuth(() => window.open(item.zip_url));
+        meta.appendChild(dl); card.append(vDiv, meta); document.getElementById('gallery').appendChild(card);
+        
+        try {
+            const res = await fetch(item.zip_url);
+            const zip = await JSZip.loadAsync(await res.blob());
+            if(item.is_r6) {
+                const parts = {};
+                for(const fn of Object.keys(zip.files)) {
+                    const geo = parseRoblox(await zip.files[fn].async("arraybuffer"));
+                    const n = fn.toLowerCase();
+                    if(n.includes('torso')) parts.torso = {geo}; else if(n.includes('leftarm')) parts.leftarm = {geo};
+                    else if(n.includes('rightarm')) parts.rightarm = {geo}; else if(n.includes('leftleg')) parts.leftleg = {geo};
+                    else if(n.includes('rightleg')) parts.rightleg = {geo};
+                }
+                initThree(vDiv, parts, true);
+            } else {
+                const geo = parseRoblox(await zip.files[Object.keys(zip.files)[0]].async("arraybuffer"));
+                initThree(vDiv, geo, false);
+            }
+        } catch(e) { vDiv.innerHTML = "Error Loading 3D"; }
+    }
+
+    function parseRoblox(buf) {
+        const dv = new DataView(buf); const u8 = new Uint8Array(buf);
+        let h = 0; for(let i=0; i<u8.length; i++) if(u8[i] === 10) { h = i+1; break; }
+        const vS = dv.getUint8(h+2), vC = dv.getUint32(h+4,true), fC = dv.getUint32(h+8,true);
+        const vO = h+12, iO = vO + (vC * vS);
+        const pos = []; for(let i=0; i<vC; i++){ const b = vO+(i*vS); pos.push(dv.getFloat32(b,true), dv.getFloat32(b+4,true), dv.getFloat32(b+8,true)); }
+        const idx = []; for(let i=0; i<fC*3; i++) idx.push(dv.getUint32(iO+(i*4), true));
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.setIndex(idx); g.computeVertexNormals(); return g;
+    }
+
+    fetchGallery();
 </script>
 </body>
 </html>
