@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeshVault | R6 Directory</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.3);
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 15, 15, 0.8);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-group { display: flex; gap: 15px; }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 30px;
+            padding: 60px;
+        }
+
+        .model-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .viewer-container {
+            width: 100%;
+            height: 320px;
+            background: #222;
+            position: relative;
+        }
+
+        .card-meta {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meta-info h3 { margin: 0; font-size: 1.1rem; }
+        .meta-info p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-dim); }
+
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: #151515;
+            width: 450px;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 15px;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">MESHVAULT</div>
+    <div class="btn-group">
+        <button class="btn" onclick="openUploader('r6')">Post R6 Layout</button>
+        <button class="btn" onclick="openUploader('single')">Post Single Mesh</button>
+    </div>
+</header>
+
+<div id="gallery"></div>
+
+<div id="modal-overlay">
+    <div class="modal">
+        <h2 id="modal-title">Publish Model</h2>
+        <input type="text" id="model-name-input" placeholder="Model Name (Folder Name)">
+        <input type="text" id="creator-name-input" placeholder="Creator Name">
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" style="flex: 1" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" style="flex: 1" onclick="finalizePublish()">Publish Now</button>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="file-input-single" hidden accept=".mesh" multiple>
+<input type="file" id="file-input-r6" hidden accept=".mesh" multiple>
+
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // 1. Initialize Supabase (Base URL & Fixed Key)
+    const supabaseUrl = 'https://ygvxsqirzprzbryamqrp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndnhzcWlyenByemJyeWFtcXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDU3MDUsImV4cCI6MjA5MjYyMTcwNX0.RFRiaWifidtKJmiCxXnZ8-NKnPvkX9SQ15DXMA1dT6E';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let pendingFiles = [];
+    let currentMode = 'single';
+    const viewers = [];
+
+    // --- FETCH GALLERY ON LOAD ---
+    async function fetchGallery() {
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = "<p style='text-align:center; width:100%; grid-column:1/-1; color:#888;'>Loading global models...</p>";
+        
+        const { data, error } = await supabase.from('posts').select('*').order('id', { ascending: false });
+        if (error) {
+            console.error(error);
+            gallery.innerHTML = "<p style='color:red;'>Failed to load models. Check Supabase DB Policies.</p>";
+            return;
+        }
+        
+        gallery.innerHTML = "";
+        if (data.length === 0) {
+            gallery.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Vault is empty. Be the first to post!</p>";
+        }
+        
+        // Render each item from the cloud
+        for (const item of data) {
+            createCardFromCloud(item);
+        }
+    }
+    
+    // Start App
+    fetchGallery();
+
+    // --- UPLOAD SYSTEM ---
+    window.openUploader = (mode) => {
+        currentMode = mode;
+        const input = document.getElementById(mode === 'single' ? 'file-input-single' : 'file-input-r6');
+        input.value = ""; 
+        input.click();
+    };
+
+    document.getElementById('file-input-single').onchange = e => handleSelection(e.target.files);
+    document.getElementById('file-input-r6').onchange = e => handleSelection(e.target.files);
+
+    function handleSelection(files) {
+        if (files.length === 0) return;
+        pendingFiles = Array.from(files);
+        document.getElementById('modal-overlay').style.display = 'flex';
+        document.getElementById('modal-title').innerText = "Publish Model";
+    }
+
+    window.closeModal = () => {
+        document.getElementById('modal-overlay').style.display = 'none';
+        pendingFiles = [];
+    };
+
+    // --- SAVE TO SUPABASE ---
+    window.finalizePublish = async () => {
+        const name = document.getElementById('model-name-input').value || "Unnamed Model";
+        const creator = document.getElementById('creator-name-input').value || "Anonymous";
+        const titleEl = document.getElementById('modal-title');
+        
+        titleEl.innerText = "Uploading to Vault... ⏳";
+
+        try {
+            let zipBlob;
+            let fileName = `${Date.now()}_${name.replace(/[^a-z0-9]/gi, '_')}.zip`;
+
+            // Package ZIP
+            const zip = new JSZip();
+            if (currentMode === 'single') {
+                zip.file(pendingFiles[0].name, await pendingFiles[0].arrayBuffer());
+            } else {
+                const r6Data = await processR6FilesLocal(pendingFiles);
+                if(!r6Data) throw new Error("Missing required R6 parts.");
+                Object.values(r6Data).forEach(p => zip.file(p.originalName, p.buffer));
+            }
+            zipBlob = await zip.generateAsync({ type: "blob" });
+
+            // Upload to Bucket
+            const { error: storageError } = await supabase.storage
+                .from('meshes')
+                .upload(fileName, zipBlob);
+
+            if (storageError) throw storageError;
+
+            // Get Public URL
+            const { data: urlData } = supabase.storage.from('meshes').getPublicUrl(fileName);
+
+            // Save to DB
+            const { error: dbError } = await supabase.from('posts').insert([{
+                name: name,
+                creator: creator,
+                zip_url: urlData.publicUrl,
+                is_r6: currentMode === 'r6'
+            }]);
+
+            if (dbError) throw dbError;
+
+            closeModal();
+            document.getElementById('model-name-input').value = "";
+            fetchGallery(); // Refresh UI for everyone
+
+        } catch (err) {
+            alert("Upload failed: " + err.message);
+            titleEl.innerText = "Publish Model";
+        }
+    };
+
+    // --- CLOUD RENDERER ---
+    async function createCardFromCloud(item) {
+        const card = document.createElement('div');
+        card.className = 'model-card';
+        const viewerDiv = document.createElement('div');
+        viewerDiv.className = 'viewer-container';
+        viewerDiv.innerHTML = '<div style="color:#555; display:flex; justify-content:center; align-items:center; height:100%;">Loading 3D...</div>';
+        
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+        meta.innerHTML = `<div class="meta-info"><h3>${item.name}</h3><p>by ${item.creator}</p></div>`;
+        
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'btn';
+        dlBtn.innerText = 'Download .zip';
+        dlBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = item.zip_url;
+            a.download = `${item.name}.zip`;
+            a.click();
+        };
+        
+        meta.appendChild(dlBtn);
+        card.append(viewerDiv, meta);
+        document.getElementById('gallery').appendChild(card);
+
+        // Fetch ZIP from Supabase, unzip, and render in Three.js
+        try {
+            const response = await fetch(item.zip_url);
+            const blob = await response.blob();
+            const zip = await JSZip.loadAsync(blob);
+            viewerDiv.innerHTML = ""; // Clear loading text
+
+            if (item.is_r6) {
+                const parts = {};
+                for (const filename of Object.keys(zip.files)) {
+                    const fileData = await zip.files[filename].async("arraybuffer");
+                    const geo = parseRoblox(fileData);
+                    const n = filename.toLowerCase();
+                    if (n.includes('torso')) parts.torso = { geo };
+                    else if (n.includes('leftarm')) parts.leftarm = { geo };
+                    else if (n.includes('rightarm')) parts.rightarm = { geo };
+                    else if (n.includes('leftleg')) parts.leftleg = { geo };
+                    else if (n.includes('rightleg')) parts.rightleg = { geo };
+                }
+                initThree(viewerDiv, parts, true);
+            } else {
+                const filename = Object.keys(zip.files)[0];
+                const fileData = await zip.files[filename].async("arraybuffer");
+                const geo = parseRoblox(fileData);
+                initThree(viewerDiv, geo, false);
+            }
+        } catch (e) {
+            console.error("Failed to render 3D preview:", e);
+            viewerDiv.innerHTML = '<div style="color:red; display:flex; justify-content:center; align-items:center; height:100%;">Preview Unavailable</div>';
+        }
+    }
+
+    // --- UTILS ---
+    async function processR6FilesLocal(files) {
+        const parts = { torso: null, leftarm: null, rightarm: null, leftleg: null, rightleg: null };
+        for (const file of files) {
+            const n = file.name.toLowerCase();
+            const buffer = await file.arrayBuffer();
+            const partInfo = { buffer, originalName: file.name };
+            
+            if (n.includes('torso')) parts.torso = partInfo;
+            else if (n.includes('leftarm')) parts.leftarm = partInfo;
+            else if (n.includes('rightarm')) parts.rightarm = partInfo;
+            else if (n.includes('leftleg')) parts.leftleg = partInfo;
+            else if (n.includes('rightleg')) parts.rightleg = partInfo;
+        }
+        return Object.values(parts).some(p => !p) ? null : parts;
+    }
+
+    function parseRoblox(buf) {
+        const dv = new DataView(buf); const u8 = new Uint8Array(buf);
+        let h = 0; for(let i=0; i<u8.length; i++) { if(u8[i] === 10) { h = i+1; break; } }
+        const vS = dv.getUint8(h + 2), vC = dv.getUint32(h + 4, true), fC = dv.getUint32(h + 8, true);
+        const vO = h + 12, iO = vO + (vC * vS);
+        const pos = []; for(let i=0; i<vC; i++) { const b = vO + (i * vS); pos.push(dv.getFloat32(b, true), dv.getFloat32(b+4, true), dv.getFloat32(b+8, true)); }
+        const idx = []; for(let i=0; i<fC*3; i++) idx.push(dv.getUint32(iO + (i*4), true));
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        geo.setIndex(idx); geo.computeVertexNormals();
+        return geo;
+    }
+
+    // --- THREE.JS ENGINE ---
+    function initThree(container, data, isR6) {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7)); 
+        const headLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        scene.add(headLight);
+
+        const material = new THREE.MeshPhongMaterial({ color: 0x999999, specular: 0x222222, shininess: 30 });
+
+        if (isR6) {
+            const group = new THREE.Group();
+            const offsets = { torso:[0,0,0], leftarm:[-1.5,0,0], rightarm:[1.5,0,0], leftleg:[-0.5,-2,0], rightleg:[0.5,-2,0] };
+            Object.entries(data).forEach(([key, val]) => {
+                val.geo.computeBoundingBox();
+                const center = new THREE.Vector3(); val.geo.boundingBox.getCenter(center);
+                val.geo.translate(-center.x, -center.y, -center.z);
+                const m = new THREE.Mesh(val.geo, material);
+                m.position.set(...offsets[key]);
+                group.add(m);
+            });
+            // Rotation: Facing user at an angle
+            group.rotation.y = Math.PI + (Math.PI / 4); 
+            scene.add(group);
+            camera.position.set(0, 2, 10);
+        } else {
+            data.computeBoundingBox();
+            const center = new THREE.Vector3(); data.boundingBox.getCenter(center);
+            const m = new THREE.Mesh(data, material);
+            m.position.sub(center);
+            // Rotation: Facing user at an angle
+            m.rotation.y = Math.PI + (Math.PI / 4);
+            scene.add(m);
+            camera.position.set(0, 0, 6);
+        }
+
+        viewers.push({ scene, camera, renderer, controls, headLight });
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        viewers.forEach(v => { 
+            v.controls.update(); 
+            v.headLight.position.copy(v.camera.position);
+            v.renderer.render(v.scene, v.camera); 
+        });
+    }
+    animate();
+</script>
+</body>
+</html>
