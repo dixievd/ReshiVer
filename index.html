@@ -10,17 +10,13 @@
             /* DARK THEME */
             --bg: #0f0f0f;
             --card-bg: #1a1a1a;
-            --header-bg: rgba(15, 15, 15, 0.7);
+            --header-bg: rgba(15, 15, 15, 0.8);
             --brand-orange: #ff9800; 
             --brand-orange-deep: #e65100;
-            --accent-glow: rgba(255, 152, 0, 0.3);
             --text: #e0e0e0;
             --text-dim: #ff9800; 
-            --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --danger: #ff4444;
-            --viewer-bg: #151515;
-            --input-bg: #000;
+            --viewer-bg: #111;
             --snow-color: rgba(255, 255, 255, 0.5);
         }
 
@@ -28,213 +24,82 @@
             /* LIGHT THEME */
             --bg: #f4f4f5;
             --card-bg: #ffffff;
-            --header-bg: rgba(255, 255, 255, 0.7);
+            --header-bg: rgba(255, 255, 255, 0.8);
             --text: #111827;
             --text-dim: #e65100;
-            --glass: rgba(0, 0, 0, 0.05);
             --glass-border: rgba(0, 0, 0, 0.1);
-            --viewer-bg: #e0e0e0;
-            --input-bg: #f9f9f9;
-            --snow-color: rgba(0, 0, 0, 0.7); /* FIXED: Black Snow */
+            --viewer-bg: #dcdcdc;
+            --snow-color: rgba(0, 0, 0, 0.8);
         }
 
-        body {
-            margin: 0;
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            overflow-x: hidden;
-            transition: background-color 0.3s ease;
-        }
-
-        #snow-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        body.locked { overflow: hidden; }
-
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.3s; }
+        #snow-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        
         header {
-            padding: 20px 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--header-bg);
+            padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; background: var(--header-bg);
         }
 
         .logo {
-            font-size: 1.4rem;
-            font-weight: 900;
-            letter-spacing: 3px;
-            background: linear-gradient(to right, var(--brand-orange), var(--brand-orange-deep));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px var(--accent-glow));
+            font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--brand-orange), #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .btn-group { display: flex; gap: 15px; align-items: center; }
-
-        .btn {
-            padding: 10px 24px;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass);
-            color: var(--text);
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: var(--brand-orange);
-            color: #fff;
-            border: none;
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
-        .btn:hover { transform: translateY(-2px); border-color: var(--brand-orange); }
-        .btn-text { background: transparent; border: none; color: var(--text-dim); }
+        #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; padding: 40px; }
         
-        .theme-toggle { padding: 0; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+        .model-card { 
+            background: var(--card-bg); border-radius: 12px; overflow: hidden; 
+            border: 1px solid var(--glass-border); transition: transform 0.2s;
+        }
+        .model-card:hover { transform: translateY(-5px); }
 
-        #gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 30px;
-            padding: 60px;
-            position: relative;
-            z-index: 1;
+        .viewer-container { width: 100%; height: 350px; background: var(--viewer-bg); cursor: grab; }
+        .viewer-container:active { cursor: grabbing; }
+
+        .card-meta { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { 
+            padding: 8px 16px; border-radius: 6px; border: 1px solid var(--glass-border);
+            background: var(--brand-orange); color: white; cursor: pointer; font-weight: bold;
         }
 
-        .model-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(5px);
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .viewer-container {
-            width: 100%;
-            height: 320px;
-            background: var(--viewer-bg);
-            position: relative;
-        }
-
-        .card-meta {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .meta-info h3 { margin: 0; font-size: 1.1rem; }
-        .meta-info p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-dim); font-weight: bold; }
-
-        #auth-user-display { 
-            color: var(--brand-orange); 
-            font-weight: 800; 
-            font-size: 0.9rem; 
-            text-transform: uppercase;
-        }
+        #auth-user-display { color: var(--brand-orange); font-weight: 800; margin-right: 15px; }
 
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-
-        .modal {
-            background: var(--card-bg);
-            width: 450px;
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            text-align: center;
-        }
-
-        .modal input {
-            width: 100%;
-            padding: 15px;
-            background: var(--input-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            color: var(--text);
-            margin: 10px 0;
-            box-sizing: border-box;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal { background: var(--card-bg); padding: 30px; border-radius: 15px; width: 400px; text-align: center; }
+        .modal input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--glass-border); background: #000; color: #fff; box-sizing: border-box; }
     </style>
 </head>
-<body class="locked">
+<body>
 
 <canvas id="snow-canvas"></canvas>
-
-<div id="age-gate" class="modal-overlay" style="display: flex; z-index: 9999;">
-    <div class="modal">
-        <h2 style="color: var(--brand-orange)">Age Verification</h2>
-        <p>You must be 18 years of age or older to access ReshiVer.</p>
-        <button class="btn btn-primary" style="width: 100%;" onclick="verifyAge()">I am 18 or older</button>
-        <button class="btn btn-text" style="width: 100%; margin-top: 10px;" onclick="window.location.href='https://google.com'">Leave Site</button>
-    </div>
-</div>
 
 <header>
     <div class="logo">RESHIVER</div>
     <div class="btn-group">
-        <button class="btn theme-toggle" onclick="toggleTheme()" id="theme-btn">☀️</button>
-        <span id="auth-user-display" style="display: none;"></span>
-        <button class="btn" id="btn-login" onclick="openAuthModal()">Login</button>
-        <button class="btn" id="btn-logout" style="display: none;" onclick="handleLogout()">Logout</button>
-        <button class="btn" onclick="requireAuth(() => openUploader('r6'))">Post R6</button>
-        <button class="btn" onclick="requireAuth(() => openUploader('single'))">Post Single</button>
+        <span id="auth-user-display"></span>
+        <button class="btn" style="background:none;" onclick="toggleTheme()">🌓</button>
+        <button class="btn" onclick="openAuthModal()" id="btn-login">Login</button>
+        <button class="btn" onclick="requireAuth(() => openUploader('r6'))">Upload R6</button>
     </div>
 </header>
 
 <div id="gallery"></div>
 
-<div id="modal-overlay" class="modal-overlay">
-    <div class="modal">
-        <h2 id="modal-title">Publish Model</h2>
-        <input type="text" id="model-name-input" placeholder="Model Name">
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn" style="flex: 1" onclick="closeModal('modal-overlay')">Cancel</button>
-            <button class="btn btn-primary" style="flex: 1" onclick="finalizePublish()">Publish Now</button>
-        </div>
-    </div>
-</div>
-
 <div id="auth-modal" class="modal-overlay">
     <div class="modal">
-        <h2 id="auth-title" style="color: var(--brand-orange)">Welcome Back</h2>
-        <input type="email" id="auth-email" placeholder="Email Address">
+        <h2 style="color: var(--brand-orange)">ReshiVer Access</h2>
+        <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-password" placeholder="Password">
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-primary" onclick="handleAuth()">Submit</button>
-            <button class="btn btn-text" onclick="toggleAuthMode()">Toggle Login/Register</button>
-            <button class="btn" onclick="closeModal('auth-modal')">Cancel</button>
-        </div>
+        <button class="btn" style="width:100%" onclick="handleAuth()">Enter Vault</button>
+        <button class="btn" style="background:none; margin-top:10px;" onclick="closeModal('auth-modal')">Close</button>
     </div>
 </div>
 
-<input type="file" id="file-input-single" hidden accept=".mesh" multiple>
 <input type="file" id="file-input-r6" hidden accept=".mesh" multiple>
 
 <script type="importmap">
@@ -246,114 +111,89 @@
     import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    const supabaseUrl = 'https://ygvxsqirzprzbryamqrp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndnhzcWlyenByemJyeWFtcXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDU3MDUsImV4cCI6MjA5MjYyMTcwNX0.RFRiaWifidtKJmiCxXnZ8-NKnPvkX9SQ15DXMA1dT6E';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient('https://ygvxsqirzprzbryamqrp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndnhzcWlyenByemJyeWFtcXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDU3MDUsImV4cCI6MjA5MjYyMTcwNX0.RFRiaWifidtKJmiCxXnZ8-NKnPvkX9SQ15DXMA1dT6E');
 
     let currentUser = null;
-    let isRegisterMode = false;
-    let pendingFiles = [];
-    let currentMode = 'single';
     const viewers = [];
+    const texLoader = new THREE.TextureLoader();
 
-    // --- SNOW ENGINE ---
+    // --- SNOW ---
     const canvas = document.getElementById('snow-canvas');
     const ctx = canvas.getContext('2d');
     let flakes = [];
     function initSnow() {
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        flakes = [];
-        for (let i = 0; i < 150; i++) flakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 3 + 1, d: Math.random() * 1 });
+        flakes = Array.from({length: 100}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, s: Math.random()+1}));
     }
     function drawSnow() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0,0,canvas.width, canvas.height);
         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--snow-color');
         flakes.forEach(f => {
-            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
-            f.y += f.d + 1; f.x += Math.sin(f.y/50);
-            if (f.y > canvas.height) { f.y = -10; f.x = Math.random() * canvas.width; }
+            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
+            f.y += f.s; if(f.y > canvas.height) f.y = -5;
         });
         requestAnimationFrame(drawSnow);
     }
     initSnow(); drawSnow();
-    window.addEventListener('resize', initSnow);
 
     // --- THEME ---
     window.toggleTheme = () => {
-        const isLight = document.body.getAttribute('data-theme') === 'light';
-        document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
-        document.getElementById('theme-btn').innerText = isLight ? '☀️' : '🌙';
+        const mode = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', mode);
     };
 
-    // --- AUTH ---
-    supabase.auth.onAuthStateChange((_event, session) => {
-        currentUser = session?.user || null;
-        const disp = document.getElementById('auth-user-display');
-        const login = document.getElementById('btn-login');
-        const logout = document.getElementById('btn-logout');
-        if (currentUser) {
-            disp.style.display = 'block'; disp.innerText = currentUser.email.split('@')[0];
-            login.style.display = 'none'; logout.style.display = 'block';
-        } else {
-            disp.style.display = 'none'; login.style.display = 'block'; logout.style.display = 'none';
-        }
-    });
-
-    window.verifyAge = () => { localStorage.setItem('ageVerified', 'true'); document.getElementById('age-gate').style.display='none'; document.body.classList.remove('locked'); };
-    if(localStorage.getItem('ageVerified')) { document.getElementById('age-gate').style.display='none'; document.body.classList.remove('locked'); }
-
-    window.openAuthModal = () => document.getElementById('auth-modal').style.display = 'flex';
-    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
-    window.toggleAuthMode = () => isRegisterMode = !isRegisterMode;
-    window.handleAuth = async () => {
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        if(isRegisterMode) await supabase.auth.signUp({email, password});
-        else await supabase.auth.signInWithPassword({email, password});
-        closeModal('auth-modal');
-    };
-    window.handleLogout = () => supabase.auth.signOut();
-    window.requireAuth = (cb) => currentUser ? cb() : openAuthModal();
-
-    // --- THREE.JS LIGHTING FIX ---
+    // --- 3D ENGINE (PRO LIGHTING & MATERIALS) ---
     function initThree(container, data, isR6) {
         const scene = new THREE.Scene();
-        const cam = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 1000);
+        const cam = new THREE.PerspectiveCamera(40, container.clientWidth/container.clientHeight, 0.1, 1000);
         const ren = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        ren.setPixelRatio(window.devicePixelRatio);
         ren.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(ren.domElement);
 
         const con = new OrbitControls(cam, ren.domElement);
         con.enableDamping = true;
 
-        // 1. Hemisphere Light (Ambient Sky/Ground light)
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-        scene.add(hemiLight);
+        // 1. Image Based Lighting (Fake Environment)
+        const gen = new THREE.PMREMGenerator(ren);
+        scene.environment = gen.fromScene(new THREE.Scene()).texture;
 
-        // 2. Fixed Directional Light (Key Light for depth)
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
+        // 2. Main Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.5);
+        sun.position.set(5, 10, 5);
+        scene.add(sun);
 
-        // 3. Headlight (Follows the camera)
-        const headLight = new THREE.PointLight(0xffffff, 1.0);
+        const headLight = new THREE.PointLight(0xffffff, 1.5);
         scene.add(headLight);
 
-        const mat = new THREE.MeshStandardMaterial({ 
-            color: 0x888888, 
-            roughness: 0.4, 
-            metalness: 0.2 
+        // 3. Material (PBR Standard)
+        const proMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xbbbbbb,
+            metalness: 0.2,
+            roughness: 0.5,
+            envMapIntensity: 1.0
         });
 
-        if(isR6) {
-            const g = new THREE.Group();
+        if (isR6) {
+            const group = new THREE.Group();
             const off = { torso:[0,0,0], leftarm:[-1.5,0,0], rightarm:[1.5,0,0], leftleg:[-0.5,-2,0], rightleg:[0.5,-2,0] };
             Object.entries(data).forEach(([k,v]) => {
-                const m = new THREE.Mesh(v.geo, mat); m.position.set(...off[k]); g.add(m);
+                if(!v) return;
+                const m = new THREE.Mesh(v.geo, proMaterial);
+                m.position.set(...off[k]);
+                group.add(m);
             });
-            scene.add(g); cam.position.set(0,2,12);
+            scene.add(group);
+            cam.position.set(0, 1, 12);
         } else {
-            const m = new THREE.Mesh(data, mat); scene.add(m); cam.position.set(0,0,6);
+            const m = new THREE.Mesh(data, proMaterial);
+            data.computeBoundingBox();
+            const center = new THREE.Vector3();
+            data.boundingBox.getCenter(center);
+            m.position.sub(center); // Auto-center
+            scene.add(m);
+            cam.position.set(0, 0, 7);
         }
 
         viewers.push({ scene, cam, ren, con, headLight });
@@ -363,44 +203,59 @@
         requestAnimationFrame(animate);
         viewers.forEach(v => { 
             v.con.update(); 
-            // FIXED: Headlight now tracks the camera position
-            v.headLight.position.copy(v.cam.position);
+            v.headLight.position.copy(v.cam.position); // Light follows user view
             v.ren.render(v.scene, v.cam); 
         });
     }
     animate();
 
-    // --- UPLOAD LOGIC ---
-    window.openUploader = (mode) => { currentMode = mode; document.getElementById(mode === 'single' ? 'file-input-single' : 'file-input-r6').click(); };
-    document.querySelectorAll('input[type="file"]').forEach(i => i.onchange = e => { pendingFiles = Array.from(e.target.files); if(pendingFiles.length) document.getElementById('modal-overlay').style.display='flex'; });
+    // --- PRO ROBLOX MESH PARSER (WITH UVs) ---
+    function parseRoblox(buf) {
+        const dv = new DataView(buf); const u8 = new Uint8Array(buf);
+        let h = 0; for(let i=0; i<u8.length; i++) if(u8[i] === 10) { h = i+1; break; }
+        
+        const vSize = dv.getUint8(h+2); // Usually 36 or 40
+        const vCount = dv.getUint32(h+4, true);
+        const fCount = dv.getUint32(h+8, true);
+        
+        const pos = [], uvs = [], idx = [];
+        const vStart = h + 12;
+        const iStart = vStart + (vCount * vSize);
 
-    window.finalizePublish = async () => {
-        const name = document.getElementById('model-name-input').value || "Unnamed";
-        const zip = new JSZip();
-        for(const f of pendingFiles) zip.file(f.name, await f.arrayBuffer());
-        const blob = await zip.generateAsync({type:"blob"});
-        const fName = `${Date.now()}_model.zip`;
-        await supabase.storage.from('meshes').upload(fName, blob);
-        const { data: url } = supabase.storage.from('meshes').getPublicUrl(fName);
-        await supabase.from('posts').insert([{ name, creator: currentUser.email.split('@')[0], zip_url: url.publicUrl, is_r6: currentMode==='r6' }]);
-        closeModal('modal-overlay'); fetchGallery();
-    };
+        for(let i=0; i<vCount; i++) {
+            const b = vStart + (i * vSize);
+            // Positions
+            pos.push(dv.getFloat32(b, true), dv.getFloat32(b+4, true), dv.getFloat32(b+8, true));
+            // UVs (at byte offset 24 for most v2 meshes)
+            if (vSize >= 32) {
+                uvs.push(dv.getFloat32(b+24, true), 1 - dv.getFloat32(b+28, true));
+            }
+        }
 
+        for(let i=0; i<fCount*3; i++) idx.push(dv.getUint32(iStart + (i*4), true));
+
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        if(uvs.length) g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        g.setIndex(idx);
+        g.computeVertexNormals();
+        return g;
+    }
+
+    // --- DB & UI ---
     async function fetchGallery() {
         const { data } = await supabase.from('posts').select('*').order('id', {ascending:false});
         const g = document.getElementById('gallery'); g.innerHTML = "";
-        data?.forEach(item => createCard(item));
+        data?.forEach(item => {
+            const card = document.createElement('div'); card.className = 'model-card';
+            const vDiv = document.createElement('div'); vDiv.className = 'viewer-container';
+            card.innerHTML = `<div class="card-meta"><div><b>${item.name}</b><br><small>@${item.creator}</small></div><button class="btn" onclick="window.open('${item.zip_url}')">GET</button></div>`;
+            card.prepend(vDiv); g.appendChild(card);
+            loadModel(item, vDiv);
+        });
     }
 
-    async function createCard(item) {
-        const card = document.createElement('div'); card.className = 'model-card';
-        const vDiv = document.createElement('div'); vDiv.className = 'viewer-container';
-        const meta = document.createElement('div'); meta.className = 'card-meta';
-        meta.innerHTML = `<div class="meta-info"><h3>${item.name}</h3><p>by ${item.creator}</p></div>`;
-        const dl = document.createElement('button'); dl.className = 'btn'; dl.innerText = 'Download';
-        dl.onclick = () => requireAuth(() => window.open(item.zip_url));
-        meta.appendChild(dl); card.append(vDiv, meta); document.getElementById('gallery').appendChild(card);
-        
+    async function loadModel(item, container) {
         try {
             const res = await fetch(item.zip_url);
             const zip = await JSZip.loadAsync(await res.blob());
@@ -409,28 +264,34 @@
                 for(const fn of Object.keys(zip.files)) {
                     const geo = parseRoblox(await zip.files[fn].async("arraybuffer"));
                     const n = fn.toLowerCase();
-                    if(n.includes('torso')) parts.torso = {geo}; else if(n.includes('leftarm')) parts.leftarm = {geo};
-                    else if(n.includes('rightarm')) parts.rightarm = {geo}; else if(n.includes('leftleg')) parts.leftleg = {geo};
-                    else if(n.includes('rightleg')) parts.rightleg = {geo};
+                    if(n.includes('torso')) parts.torso = {geo}; else if(n.includes('arm')) n.includes('left') ? parts.leftarm={geo} : parts.rightarm={geo};
+                    else if(n.includes('leg')) n.includes('left') ? parts.leftleg={geo} : parts.rightleg={geo};
                 }
-                initThree(vDiv, parts, true);
+                initThree(container, parts, true);
             } else {
                 const geo = parseRoblox(await zip.files[Object.keys(zip.files)[0]].async("arraybuffer"));
-                initThree(vDiv, geo, false);
+                initThree(container, geo, false);
             }
-        } catch(e) { vDiv.innerHTML = "Error Loading 3D"; }
+        } catch(e) { container.innerHTML = "Model Lost"; }
     }
 
-    function parseRoblox(buf) {
-        const dv = new DataView(buf); const u8 = new Uint8Array(buf);
-        let h = 0; for(let i=0; i<u8.length; i++) if(u8[i] === 10) { h = i+1; break; }
-        const vS = dv.getUint8(h+2), vC = dv.getUint32(h+4,true), fC = dv.getUint32(h+8,true);
-        const vO = h+12, iO = vO + (vC * vS);
-        const pos = []; for(let i=0; i<vC; i++){ const b = vO+(i*vS); pos.push(dv.getFloat32(b,true), dv.getFloat32(b+4,true), dv.getFloat32(b+8,true)); }
-        const idx = []; for(let i=0; i<fC*3; i++) idx.push(dv.getUint32(iO+(i*4), true));
-        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-        g.setIndex(idx); g.computeVertexNormals(); return g;
-    }
+    // Auth helpers
+    window.openAuthModal = () => document.getElementById('auth-modal').style.display='flex';
+    window.closeModal = (id) => document.getElementById(id).style.display='none';
+    window.handleAuth = async () => {
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        await supabase.auth.signInWithPassword({email, password});
+        location.reload();
+    };
+
+    supabase.auth.onAuthStateChange((_e, session) => {
+        currentUser = session?.user;
+        if(currentUser) {
+            document.getElementById('auth-user-display').innerText = currentUser.email.split('@')[0];
+            document.getElementById('btn-login').style.display = 'none';
+        }
+    });
 
     fetchGallery();
 </script>
